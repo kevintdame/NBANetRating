@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basketball Team Visualization</title>
+<link href="https://fonts.googleapis.com/css?family=Oswald&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+
+
+<style>
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+
+  .container {
+    position: relative;
+    max-width: 2400px;
+    margin: auto;
+  }
+
+  header {
+    background: url('/images/spectrum.png') no-repeat center center; 
+    background-size: cover; /* Ensures the spectrum image covers the entire header */
+    width: 100%; /* Stretch across the full width */
+    padding: 10px 0; /* Adjust padding to your preference */
+    box-sizing: border-box; /* Ensures padding does not affect the total width */
+  }
+
+  header img {
+    max-width: 300px; /* Adjust this value to fit your logo size */
+    height: auto;
+    display: inline-block;
+  }
+
+
+  .court-background {
+    position: fixed; /* Fixed position to cover the whole screen */
+    top: 0;
+    left: 0;
+    width: 100vw; /* Full width of the viewport */
+    height: 100vh; /* Full height of the viewport */
+    background: url('/images/court.png') no-repeat center center; 
+    background-size: cover; /* Cover ensures that the background covers the area without losing its aspect ratio */
+    z-index: -1; /* Send the background to the back */
+  }
+
+
+  .team-info {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    /* Make sure it's sized to match the background image */
+  }
+
+  .player {
+    position: absolute;
+    width: 180px; /* Set a fixed width or use vw for responsive sizing */
+    height: 240px; /* Set a fixed height or use vh for responsive sizing */
+    /* Use transform to center the content if necessary */
+
+  }
+
+  .player-position-c {
+    top: 20vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+  }
+
+  .player-position-sf {
+    position: absolute;
+    top: 40vh;
+    left: 70vw;
+    transform: translate(-50%, -50%);
+    /* Temporary styles to highlight the element */
+    z-index: 100; /* Ensure it's on top */
+  }
+
+  .player-position-pf {
+    position: absolute;
+    top: 40vh;
+    left: 30vw;
+    transform: translate(-50%, -50%);
+    /* Temporary styles to highlight the element */
+    z-index: 100; /* Ensure it's on top */
+  }
+
+  .player-position-pg {
+    position: absolute;
+    top: 70vh;
+    left: 40vw;
+    transform: translate(-50%, -50%);
+    /* Temporary styles to highlight the element */
+    z-index: 100; /* Ensure it's on top */
+  }
+
+ 
+  .player-position-sg {
+    position: absolute;
+    top: 70vh;
+    left: 60vw;
+    transform: translate(-50%, -50%);
+    /* Temporary styles to highlight the element */
+    z-index: 100; /* Ensure it's on top */
+  }
+
+
+  .player-position-b {
+    position: absolute;
+    top: 70vh;
+    left: 90vw;
+    transform: translate(-50%, -50%);
+    /* Temporary styles to highlight the element */
+    z-index: 100; /* Ensure it's on top */
+  }
+
+
+
+  .player-name, .player-number, .player-position, .player-net-rating {
+    font-size: 16px;
+    color: white;
+  }
+
+  .color-spectrum {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    margin-left: 50px;  
+    margin-bottom: 50px;  
+
+  }
+
+  .color-spectrum img {
+    width: 250px;
+    height: 15px;
+  }
+
+  .percentile-label {
+    display: block;
+    text-align: center;
+    font-size: 20px;
+    font-family: 'Oswald',sans-serif; /* Set the font style */
+    margin-left: 0px;  
+    margin-bottom: 0px; 
+  }
+
+  @media (max-width: 768px) {
+    .team-info {
+      flex-direction: column;
+    }
+
+  
+    .color-spectrum {
+      position: absolute;
+      bottom: 0; /* This will put the element at the bottom of the viewport */
+      left: 0; /* This will align the element with the left edge of the viewport */
+      width: 100%; /* This will stretch the element to full width if that's what you want */
+      text-align: center;
+
+    }
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    position: relative; /* This provides a positioning context for absolute elements */
+    overflow: hidden; /* Prevents scrollbars if the content is larger than the viewport */
+  }
+
+  /* Using the body for the court background */
+  body {
+    background: url('/images/court.png') no-repeat center center fixed; 
+    background-size: contain; /* Change to 'cover' if you want the image to cover the entire viewport without preserving its aspect ratio */
+    background-color: black; /* Provide a background color for areas not covered by the image */
+  }
+
+  /* Inside the <style> tag */
+
+  /* Header and logo styles */
+  header {
+    background: url('/images/spectrum2.png') no-repeat center center; 
+    background-size: cover; /* Ensures the spectrum image covers the entire header */
+    padding: 10px 20px; /* Adjust padding to your preference */
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: left; /* Align logo to the left */
+    max-width: 2200px; /* Adjust based on your layout width */
+    margin: 0 auto; /* Centers the logo in the max-width */
+    padding: 0 20px; /* Adjust padding to your preference */
+  }
+
+  .logo img {
+    height: 50px; /* Adjust height as needed */
+    width: auto; /* Keeps the aspect ratio of the basketball image */
+    margin-right: 10px; /* Space between the image and the text */
+  }
+
+  .logo-text {
+    font-family: 'HelveticaNeue', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 30px; /* Adjust size as needed */
+    color: black; /* Adjust color as needed */
+  }
+
+  footer.color-spectrum {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  footer .percentile-label {
+    margin: 0; /* Reset margin for the label */
+    padding-left: 0px; /* Padding on the left to align with the content above */
+    font-size: 16px; /* Adjust text size as needed */
+    font-family: 'Oswald',sans-serif; /* Set the font style */
+    color: white; /* Set the text color */
+    background: transparent; /* Make sure there's no background */
+  }
+
+  footer img {
+    margin: 0; /* Reset any default margin */
+    padding: 0; /* Reset any default padding */
+    max-height: 50px; /* Control the height of the image */
+    width: auto; /* Maintain the aspect ratio of the image */
+    display: block; /* This ensures there's no extra space around the image */
+  }
+
+  
+/* Continue for other jerseys */
+
+
+
+
+
+
+  .player img {
+    width: 100%; /* Makes the image fill the width of its container */
+    height: auto; /* Maintains the aspect ratio of the image */
+    display: block; /* Removes any extra space around the image */
+    margin-bottom: 10px; /* Space below the image */
+  }
+
+
+
+
+  /* Absolute positioning for text elements */
+  .player-name, .player-number, .player-position, .player-net-rating {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%; /* Allows text-align center to work properly */
+    text-align: center;
+  }
+
+  .player-name {
+    top: 20%; /* Adjust as necessary */
+    font-family: 'Oswald',sans-serif; /* Set the font style */
+  }
+
+  .player-number {
+    top: 27%; /* Adjust as necessary */
+    font-family: 'Oswald',sans-serif; /* Set the font style */
+    font-size: 80PX; /* Adjust as necessary */
+  }
+
+  .player-position {
+    top: 75%; /* Adjust as necessary */
+    font-size: 20px; /* Adjust as necessary */
+    font-family: 'Oswald',sans-serif; /* Set the font style */
+    text-align: center; /* Center the text below the jersey */
+
+  }
+
+  .player-net-rating {
+    top: 95%; /* Adjust as necessary */
+    font-size: 14px; /* Adjust the font size as necessary */
+    font-family: 'Oswald', sans-serif; /* Set the font style */
+    text-align: center; /* Center the text below the jersey */
+    /* Remove the absolute positioning and top percentage */
+    color: gray; /* This sets the text color to gray */
+
+  }
+
+  .dropdown-container {
+    position: absolute;
+    top: 80px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    z-index: 100; /* Ensure it's above other elements */
+  }
+
+ /* Custom styles for the dropdown */
+#team-selector {
+  -webkit-appearance: none;  /* Removes default styling for dropdown on WebKit browsers */
+  -moz-appearance: none;     /* Removes default styling for dropdown on Firefox browsers */
+  appearance: none;          /* Removes default styling for dropdown */
+  background-color: black;   /* Sets the background color to black */
+  color: white;              /* Sets the text color to white */
+  border: 2px solid white;   /* Sets the border color to white */
+  padding: 10px 40px 10px 20px; /* Adds padding inside the dropdown */
+  border-radius: 0;          /* Optional: removes the border-radius if you want square corners */
+  font-size: 16px;           /* Adjust the font size as needed */
+  position: relative;        /* To position the custom arrow */
+  font-family: 'Oswald',sans-serif; /* Set the font style */
+}
+
+ /* Custom styles for the dropdown */
+ #rating-selector {
+  -webkit-appearance: none;  /* Removes default styling for dropdown on WebKit browsers */
+  -moz-appearance: none;     /* Removes default styling for dropdown on Firefox browsers */
+  appearance: none;          /* Removes default styling for dropdown */
+  background-color: black;   /* Sets the background color to black */
+  color: white;              /* Sets the text color to white */
+  border: 2px solid white;   /* Sets the border color to white */
+  padding: 10px 40px 10px 20px; /* Adds padding inside the dropdown */
+  border-radius: 0;          /* Optional: removes the border-radius if you want square corners */
+  font-size: 16px;           /* Adjust the font size as needed */
+  position: relative;        /* To position the custom arrow */
+  font-family: 'Oswald',sans-serif; /* Set the font style */
+}
+
+/* Custom arrow for the dropdown */
+#team-selector::after {
+  content: '\25BC';          /* Unicode character for down arrow, you can change it as needed */
+  color: white;              /* Sets the arrow color to white */
+  position: absolute;        /* Positions the arrow absolutely within the dropdown */
+  right: 15px;               /* Positions the arrow from the right */
+  top: 18px;                 /* Centers the arrow vertically */
+  pointer-events: none;      /* Makes sure clicks on the arrow don't interfere with the dropdown functionality */
+}
+
+/* Custom arrow for the dropdown */
+#rating-selector::after {
+  content: '\25BC';          /* Unicode character for down arrow, you can change it as needed */
+  color: white;              /* Sets the arrow color to white */
+  position: absolute;        /* Positions the arrow absolutely within the dropdown */
+  right: 15px;               /* Positions the arrow from the right */
+  top: 18px;                 /* Centers the arrow vertically */
+  pointer-events: none;      /* Makes sure clicks on the arrow don't interfere with the dropdown functionality */
+}
+
+
+/* To hide the browser default dropdown arrow */
+select::-ms-expand {
+  display: none;             /* Hide the default dropdown arrow in IE/Edge */
+}
+
+/* Adding a custom dropdown arrow using a pseudo-element */
+#team-selector {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><polygon points="70,90 40,50 100,50" style="fill:white;"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 20px 20px;
+}
+
+/* Adding a custom dropdown arrow using a pseudo-element */
+#rating-selector {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><polygon points="70,90 40,50 100,50" style="fill:white;"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 20px 20px;
+}
+
+/* Further styling adjustments as needed */
+
+
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <img src="/images/basketball.png" alt="Logo" />
+      <span class="logo-text"><b>kevindame</b>basketball</span>
+    </div>
+  </header>
+  
+  <div class="dropdown-container">
+
+    <select id="team-selector">
+        <option value="ATL_players.csv">ATLANTA HAWKS</option>
+        <option value="BOS_players.csv">BOSTON CELTICS</option>
+        <option value="BRK_players.csv">BROOKLYN NETS</option>
+        <option value="CHI_players.csv">CHICAGO BULLS</option>
+        <option value="CHO_players.csv">CHARLOTTE HORNETS</option>
+        <option value="ClE_players.csv">CLEVELAND CAVALIERS</option>
+        <option value="DAL_players.csv">DALLAS MAVERICKS</option>
+        <option value="DEN_players.csv">DENVER NUGGETS</option>
+        <option value="DET_players.csv">DETROIT PISTONS</option>
+        <option value="GSW_players.csv">GOLDEN STATE WARRIORS</option>
+        <option value="HOU_players.csv">HOUSTON ROCKETS</option>
+        <option value="IND_players.csv">INDIANA PACERS</option>
+        <option value="LAC_players.csv">LOS ANGELES CLIPPERS</option>
+        <option value="LAL_players.csv">LOS ANGELES LAKERS</option>
+        <option value="MEM_players.csv">MEMPHIS GRIZZLIES</option>
+        <option value="MIA_players.csv">MIAMI HEAT</option>
+        <option value="MIL_players.csv">MILWAUKEE BUCKS</option>
+        <option value="MIN_players.csv">MINNESOTA TIMBERWOLVES</option>
+        <option value="NOP_players.csv">NEW ORLEANS PELICANS</option>
+        <option value="NYK_players.csv">NEW YORK KNICKS</option>
+        <option value="OKC_players.csv">OKLAHOMA CITY THUNDER</option>
+        <option value="ORL_players.csv">ORLANDO MAGIC</option>
+        <option value="PHI_players.csv">PHILADELPHIA 76ERS</option>
+        <option value="PHO_players.csv">PHOENIX SUNS</option>
+        <option value="POR_players.csv">PORTLAND TRAILBLAZERS</option>
+        <option value="SAC_players.csv">SACRAMENTO KINGS</option>
+        <option value="SAS_players.csv">SAN ANTONIO SPURS</option>
+        <option value="TOR_players.csv">TORONTO RAPTORS</option>
+        <option value="UTA_players.csv">UTAH JAZZ</option>
+        <option value="WAS_players.csv">WASHINGTON WIZARDS</option>
+
+        <!-- Add other teams here -->
+    </select>
+
+    <select id="rating-selector">
+      <option value="Net_Rating_percentile">NET RATING</option>
+      <option value="ORtg_percentile">OFFENSIVE RATING</option>
+      <option value="DRtg_percentile">DEFENSIVE RATING</option>
+    </select>
+
+  </div>
+
+
+
+    <div class="team-info" id="team-info">
+        <!-- Player jerseys will be added by JavaScript -->
+    </div>
+
+</div>
+
+<footer class="color-spectrum">
+  <span class="percentile-label">1st  ------------ PERCENTILE ------------  100th</span>
+  <img src="/images/spectrum.png" alt="Color Spectrum">
+</footer>
+
+<script>
+
+// Ensure playerCount is declared only once outside your player processing function.
+let playerCount = 0;
+
+  var bosPlayersData;
+  var nbaStatsData;
+
+  function fetchAndParseCsv(filePath) {
+  return fetch(filePath)
+    .then(response => response.text())
+    .then(csvText => {
+      return new Promise((resolve) => {
+        Papa.parse(csvText, {
+          header: true,
+          complete: results => {
+            //console.log(results.data); // Log to see what's inside the CSV data
+            resolve(results.data);
+          }
+        });
+      });
+    });
+}
+
+  
+function loadData(fileName) {
+  playerCount = 0; // Reset the player count
+
+  // Get the selected rating type from the new dropdown
+  const selectedRatingType = document.getElementById('rating-selector').value;
+
+  Promise.all([
+    fetchAndParseCsv(`netratingcsvfiles/${fileName}`),
+    fetchAndParseCsv('NBAstats.csv')
+  ])
+  .then(([teamPlayers, nbaStats]) => {
+    // Debugging: log the raw data from CSV files
+    console.log(`${fileName} Players Raw Data:`, teamPlayers);
+    console.log('NBA Stats Raw Data:', nbaStats);
+
+    const mergedData = mergeData(teamPlayers, nbaStats);
+
+    // Validation: ensure each player object has necessary properties
+    let validPlayersData = mergedData.filter(player => 
+      player && 
+      player.Player && 
+      typeof player.Number !== 'undefined' && 
+      player.Pos
+    );
+
+    // Log the length and content of validPlayersData for debugging
+    console.log('Valid Players Data Array Length:', validPlayersData.length);
+    console.log('Valid Players Data Array:', validPlayersData);
+
+    // Check if there are more players than expected
+    if (validPlayersData.length > 6) {
+      console.warn('More players than expected. Expected 6, found:', validPlayersData.length);
+      // Optionally slice the array to only include the first 6
+      validPlayersData = validPlayersData.slice(0, 6);
+    }
+
+    // Call displayPlayers with the valid players data and the selected rating type
+    displayPlayers(validPlayersData, selectedRatingType);
+  })
+  .catch(error => {
+    // Log any errors that occur during fetching or merging of the data
+    console.error('Error fetching CSV files:', error);
+  });
+}
+
+
+
+// Event listener for the team selection dropdown
+document.getElementById('team-selector').addEventListener('change', function() {
+  const selectedTeamFile = this.value;
+  loadData(selectedTeamFile);
+});
+
+// Initial call to loadData when the page is loaded
+window.addEventListener('DOMContentLoaded', function() {
+  const defaultTeamFile = document.getElementById('team-selector').value;
+  loadData(defaultTeamFile);
+});
+
+document.getElementById('rating-selector').addEventListener('change', function() {
+    const selectedTeamFile = document.getElementById('team-selector').value;
+    loadData(selectedTeamFile);
+});
+
+
+
+
+  function normalizeName(name) {
+    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function normalizeName(name) {
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function mergeData(bosPlayers, nbaStats) {
+  // Create a lookup object with normalized player names as keys and numbers as values
+  const statsLookup = nbaStats.reduce((lookup, stat) => {
+    if (stat.Player) {
+      const normalizedName = normalizeName(stat.Player);
+      lookup[normalizedName] = stat.Number;
+    }
+    return lookup;
+  }, {});
+
+  // Merge the BOS players data with the stats using the lookup
+  return bosPlayers.map(bosPlayer => {
+    if (bosPlayer.Player) {
+      //console.log('Before normalization:', bosPlayer.Player);
+      const normalizedFullName = normalizeName(bosPlayer.Player);
+      //console.log('After normalization:', normalizedFullName);
+
+      const number = statsLookup[normalizedFullName];
+
+      if (number !== undefined) {
+        bosPlayer.Number = number;
+      } else {
+        console.error(`Number not found for player: ${bosPlayer.Player}`);
+        bosPlayer.Number = 'Unknown';
+      }
+    } else {
+      console.error('Player name is undefined:', bosPlayer);
+      bosPlayer.Number = 'Unknown';
+    }
+    return bosPlayer;
+  });
+}
+
+
+
+
+// Call loadData when the DOM content is fully loaded
+window.addEventListener('DOMContentLoaded', loadData);
+
+  function resetOccupiedPositions() {
+    // Reset all positions to false indicating they are open
+    Object.keys(occupiedPositions).forEach(key => {
+      occupiedPositions[key] = false;
+    });
+  }
+
+
+
+  function displayPlayers(playersData, selectedRatingType) {
+    resetOccupiedPositions(); // Call this before you start processing players
+    const teamInfoDiv = document.getElementById('team-info');
+    teamInfoDiv.innerHTML = ''; // Clear existing player elements
+
+    playersData.forEach((player, index) => {
+      const playerElement = createPlayerElement(player, index, selectedRatingType); // Pass selectedRatingType here
+      teamInfoDiv.appendChild(playerElement);
+    });
+
+    // Assign any remaining players who didn't have an assigned position
+    assignRemainingPlayers();
+  }
+
+
+
+
+  // Initialize an object to keep track of occupied positions
+  let occupiedPositions = {
+    'C': false,
+    'PF': false,
+    'SF': false,
+    'PG': false,
+    'SG': false,
+    'B': false // Assuming 'B' is the bench or an additional position
+  };
+
+  let unassignedPlayers = [];
+
+  let positionToClassMap = {
+    'C': 'player-position-c',
+    'PF': 'player-position-pf',
+    'SF': 'player-position-sf',
+    'PG': 'player-position-pg',
+    'SG': 'player-position-sg',
+    'B': 'player-position-b' // Assuming 'B' is the bench or an additional position
+  };
+
+  const colorThresholds = {
+    excellent: { percentile: 80, color: '#f54024' }, // Replace with actual color value
+    good: { percentile: 60, color: '#faaa2c' }, // Replace with actual color value
+    average: { percentile: 40, color: '#dad550' }, // Replace with actual color value
+    belowAverage: { percentile: 20, color: '#67c9b5' }, // Replace with actual color value
+    poor: { color: '#1287ae' } // Replace with actual color value
+  };
+
+
+  function createPlayerElement(player, index, selectedRatingType) {
+    // Create and set up the div for the player's name
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'player-name';
+    let nameParts = player.Player.split(' ');
+    const suffixes = ['Jr.', 'II', 'III', 'IV', 'V', 'Sr.'];
+    const lastName = nameParts.filter(part => !suffixes.includes(part)).pop().toUpperCase();
+    nameDiv.textContent = lastName;
+
+    // Create the main player div
+    const playerDiv = document.createElement('div');
+    playerDiv.className = 'player';
+
+    // Determine jersey image based on the selected rating percentile
+    const ratingPercentile = parseFloat(player[selectedRatingType]);
+    let jerseyImage;
+    if (ratingPercentile >= 80) {
+      jerseyImage = 'jersey5.png';
+    } else if (ratingPercentile >= 60) {
+      jerseyImage = 'jersey4.png';
+    } else if (ratingPercentile >= 40) {
+      jerseyImage = 'jersey3.png';
+    } else if (ratingPercentile >= 20) {
+      jerseyImage = 'jersey2.png';
+    } else {
+      jerseyImage = 'jersey1.png';
+    }
+
+    // Create and set up the image element for the player's jersey
+    const img = document.createElement('img');
+    img.src = `/images/${jerseyImage}`;
+    img.alt = `${player.Player} Jersey`;
+    img.className = 'player-jersey-image';
+
+    // Create and set up the div for the player's number
+    const numberDiv = document.createElement('div');
+    numberDiv.className = 'player-number';
+    numberDiv.textContent = player.Number;
+
+    // Determine the color based on the selected rating percentile
+    let numberColor;
+    if (ratingPercentile >= colorThresholds.excellent.percentile) {
+      numberColor = colorThresholds.excellent.color;
+    } else if (ratingPercentile >= colorThresholds.good.percentile) {
+      numberColor = colorThresholds.good.color;
+    } else if (ratingPercentile >= colorThresholds.average.percentile) {
+      numberColor = colorThresholds.average.color;
+    } else if (ratingPercentile >= colorThresholds.belowAverage.percentile) {
+      numberColor = colorThresholds.belowAverage.color;
+    } else {
+      numberColor = colorThresholds.poor.color;
+    }
+    numberDiv.style.color = numberColor;
+
+    // Create and set up the div for the player's position
+    const positionDiv = document.createElement('div');
+    positionDiv.className = 'player-position';
+    positionDiv.textContent = player.Pos;
+    positionDiv.style.color = numberColor;
+
+    // Create and set up the div for the player's net rating
+    const ratingDiv = document.createElement('div');
+    ratingDiv.className = 'player-net-rating';
+
+    // Determine the actual rating value to display
+    let actualRatingValue;
+    switch (selectedRatingType) {
+        case 'Net_Rating_percentile':
+            actualRatingValue = player.Net_Rating;
+            break;
+        case 'ORtg_percentile':
+            actualRatingValue = player.ORtg;
+            break;
+        case 'DRtg_percentile':
+            actualRatingValue = player.DRtg;
+            break;
+        default:
+          actualRatingValue = player.DRtg; // Fetches raw Defensive Rating
+    }
+    const roundedNetRating = Math.round(actualRatingValue); // Round the actual rating value
+    ratingDiv.textContent = `${roundedNetRating} NET RATING`; // Display the actual rating value
+    ratingDiv.style.color = numberColor;
+
+    // Logic for assigning player positions
+    const positionToClassMap = {
+      'C': 'player-position-c',
+      'PF': 'player-position-pf',
+      'SF': 'player-position-sf',
+      'PG': 'player-position-pg',
+      'SG': 'player-position-sg',
+      // 'B' can be added here if applicable
+    };
+
+    if (index === 5) {
+      playerDiv.classList.add('player-position-b');
+      occupiedPositions['B'] = true;
+    } else {
+      let positionClass = positionToClassMap[player.Pos];
+      if (positionClass && !occupiedPositions[player.Pos]) {
+        playerDiv.classList.add(positionClass);
+        occupiedPositions[player.Pos] = true;
+      } else {
+        unassignedPlayers.push({ playerDiv, player });
+      }
+    }
+
+    // Append all elements to the main player div
+    playerDiv.appendChild(img);
+    playerDiv.appendChild(nameDiv);
+    playerDiv.appendChild(numberDiv);
+    playerDiv.appendChild(positionDiv);
+    playerDiv.appendChild(ratingDiv);
+
+    return playerDiv;
+}
+
+
+
+
+  // Function to assign unassigned players to remaining open positions
+function assignRemainingPlayers() {
+  const openPositions = Object.keys(occupiedPositions).filter(pos => !occupiedPositions[pos]);
+
+  unassignedPlayers.forEach(playerData => {
+    if (openPositions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * openPositions.length);
+      const position = openPositions.splice(randomIndex, 1)[0];
+      const positionClass = positionToClassMap[position];
+      playerData.playerDiv.classList.add(positionClass);
+      occupiedPositions[position] = true; // Mark the position as occupied
+    } else {
+      console.error('No open positions available for player:', playerData.player.Player);
+    }
+  });
+
+  // Clear the unassigned players array after processing
+  unassignedPlayers = [];
+}
+
+// Helper function to check if a position is already occupied
+function isPositionOccupied(positionClass) {
+  return document.querySelector('.' + positionClass) !== null;
+}
+
+  
+
+  // Call this function when the document is loaded
+  window.addEventListener('DOMContentLoaded', (event) => {
+    loadData();
+  });
+
+  function adjustTextSize() {
+    const playerElements = document.querySelectorAll('.player');
+    playerElements.forEach(player => {
+      const playerName = player.querySelector('.player-name');
+      if (playerName) {
+        // Calculate font size based on the width of the player element and the length of the name.
+        const textLength = playerName.textContent.length;
+        const baseFontSize = player.offsetWidth / 8; // Base font size, which you can adjust
+        const fontSize = Math.min(baseFontSize, player.offsetWidth / textLength); // The lesser of the base size or dynamic size
+        const maxFontSize = 100; // Set the maximum font size you want to allow to prevent overlap
+        playerName.style.fontSize = `${Math.min(fontSize, maxFontSize)}px`;
+      }
+    });
+  }
+
+  // Event listener for the team selection dropdown
+  document.getElementById('team-selector').addEventListener('change', function() {
+    const selectedTeamFile = this.value;
+    loadData(selectedTeamFile);
+  });
+
+  // Initial call to loadData when the DOM content is fully loaded
+  window.addEventListener('DOMContentLoaded', function() {
+    const defaultTeamFile = document.getElementById('team-selector').value;
+    loadData(defaultTeamFile);
+  });
+
+
+
+// Call this function on window resize and initial load
+window.addEventListener('load', adjustTextSize);
+window.addEventListener('resize', adjustTextSize);
+
+</script>
+</body>
+</html>
