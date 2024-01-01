@@ -27,7 +27,7 @@
   }
 
   header {
-    background: url('/images/spectrum.png') no-repeat center center; 
+    background: url('/NBANetRating/images/spectrum.png') no-repeat center center; 
     background-size: cover; /* Ensures the spectrum image covers the entire header */
     width: 100%; /* Stretch across the full width */
     padding: 10px 0; /* Adjust padding to your preference */
@@ -47,7 +47,7 @@
     left: 0;
     width: 100vw; /* Full width of the viewport */
     height: 100vh; /* Full height of the viewport */
-    background: url('/images/court.png') no-repeat center center; 
+    background: url('/NBANetRating/images/court.png') no-repeat center center; 
     background-size: cover; /* Cover ensures that the background covers the area without losing its aspect ratio */
     z-index: -1; /* Send the background to the back */
   }
@@ -177,7 +177,7 @@
 
   /* Using the body for the court background */
   body {
-    background: url('/images/court.png') no-repeat center center fixed; 
+    background: url('/NBANetRating/images/court.png') no-repeat center center fixed; 
     background-size: contain; /* Change to 'cover' if you want the image to cover the entire viewport without preserving its aspect ratio */
     background-color: black; /* Provide a background color for areas not covered by the image */
   }
@@ -186,7 +186,7 @@
 
   /* Header and logo styles */
   header {
-    background: url('/images/spectrum2.png') no-repeat center center; 
+    background: url('/NBANetRating/images/spectrum2.png') no-repeat center center; 
     background-size: cover; /* Ensures the spectrum image covers the entire header */
     padding: 10px 20px; /* Adjust padding to your preference */
   }
@@ -388,7 +388,7 @@ select::-ms-expand {
 
   <header>
     <div class="logo">
-      <img src="/images/basketball.png" alt="Logo" />
+      <img src="/NBANetRating/images/basketball.png" alt="Logo" />
       <span class="logo-text"><b>kevindame</b>basketball</span>
     </div>
   </header>
@@ -448,7 +448,7 @@ select::-ms-expand {
 
 <footer class="color-spectrum">
   <span class="percentile-label">1st  ------------ PERCENTILE ------------  100th</span>
-  <img src="/images/spectrum.png" alt="Color Spectrum">
+  <img src="/NBANetRating/images/spectrum.png" alt="Color Spectrum">
 </footer>
 
 <script>
@@ -676,7 +676,7 @@ window.addEventListener('DOMContentLoaded', loadData);
 
     // Create and set up the image element for the player's jersey
     const img = document.createElement('img');
-    img.src = `/images/${jerseyImage}`;
+    img.src = `/NBANetRating/images/${jerseyImage}`;
     img.alt = `${player.Player} Jersey`;
     img.className = 'player-jersey-image';
 
